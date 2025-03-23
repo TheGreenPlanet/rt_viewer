@@ -15,7 +15,25 @@
 #include <algorithm>
 #include <map>
 
+#include <glm/gtc/random.hpp>
+
 namespace cg {
+    namespace random {
+
+        static glm::vec3 random_unit_vector() {
+            return glm::sphericalRand(1.0f);
+        }
+
+        static glm::vec3 random_unit_vector_on_hemisphere(const glm::vec3 &normal) {
+            glm::vec3 v = random_unit_vector();
+            return glm::dot(v, normal) > 0.0f ? v : -v;
+        }
+
+        static glm::vec3 lambertian_random_unit_vector(const glm::vec3 &normal) {
+            return normal + random_unit_vector();
+        }
+
+    };
 
 // Struct for representing a virtual 3D trackball that can be used for
 // object or camera rotation

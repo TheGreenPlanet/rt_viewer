@@ -68,13 +68,17 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
     if (max_bounces < 0) return glm::vec3(0.0f);
 
     HitRecord rec;
-    if (hit_world(r, 0.0f, 9999.0f, rec)) {
+    if (hit_world(r, 0.001f, 9999.0f, rec)) {  // 0.001f is our shadow acne hack
         rec.normal = glm::normalize(rec.normal);  // Always normalise before use!
         if (rtx.show_normals) { return rec.normal * 0.5f + 0.5f; }
 
         // Implement lighting for materials here
-        // ...
-        return glm::vec3(0.0f);
+        const glm::vec3 direction = rtx.true_lambertian ? cg::random::lambertian_random_unit_vector(rec.normal) : cg::random::random_unit_vector_on_hemisphere(rec.normal);
+constexpr float material_diffuse_color_consumption = 0.5f;
+
+        return material_diffuse_color_consumption * color(rtx, Ray(rec.p, direction), max_bounces - 1);
+
+        //return glm::vec3(0.0f);
     }
 
     // If no hit, return sky color
@@ -92,16 +96,16 @@ void setupScene(RTContext &rtx, const char *filename)
         Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f),
         Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f),
     };
-    //g_scene.boxes = {
+    // g_scene.boxes = {
     //    Box(glm::vec3(0.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
     //    Box(glm::vec3(1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
     //    Box(glm::vec3(-1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-    //};
+    // };
 
-    //cg::OBJMesh mesh;
-    //cg::objMeshLoad(mesh, filename);
-    //g_scene.mesh.clear();
-    //for (int i = 0; i < mesh.indices.size(); i += 3) {
+    // cg::OBJMesh mesh;
+    // cg::objMeshLoad(mesh, filename);
+    // g_scene.mesh.clear();
+    // for (int i = 0; i < mesh.indices.size(); i += 3) {
     //    int i0 = mesh.indices[i + 0];
     //    int i1 = mesh.indices[i + 1];
     //    int i2 = mesh.indices[i + 2];
@@ -109,7 +113,16 @@ void setupScene(RTContext &rtx, const char *filename)
     //    glm::vec3 v1 = mesh.vertices[i1] + glm::vec3(0.0f, 0.135f, 0.0f);
     //    glm::vec3 v2 = mesh.vertices[i2] + glm::vec3(0.0f, 0.135f, 0.0f);
     //    g_scene.mesh.push_back(Triangle(v0, v1, v2));
-    //}
+    // }
+}
+
+// Gamma 2 correction from the book (ch. 9.5)
+inline double linear_to_gamma(double linear_component) 
+{
+    if (linear_component > 0)
+        return std::sqrt(linear_component);
+
+    return 0;
 }
 
 // MODIFY THIS FUNCTION!
@@ -124,11 +137,15 @@ void updateLine(RTContext &rtx, int y)
     glm::vec3 origin(0.0f, 0.0f, 0.0f);
     glm::mat4 world_from_view = glm::inverse(rtx.view);
 
+    // Toggle anti-aliasing stochastic sampling
+    float xcoordinate_in_pixel = rtx.anti_aliasing ? drand48() : 0.5f;
+    float ycoordinate_in_pixel = rtx.anti_aliasing ? drand48() : 0.5f;
+
     // You can try parallelising this loop by uncommenting this line:
-    //#pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic)
     for (int x = 0; x < nx; ++x) {
-        float u = (float(x) + 0.5f) / float(nx);
-        float v = (float(y) + 0.5f) / float(ny);
+        float u = (float(x) + xcoordinate_in_pixel) / float(nx);
+        float v = (float(y) + ycoordinate_in_pixel) / float(ny);
         Ray r(origin, lower_left_corner + u * horizontal + v * vertical);
         r.A = glm::vec3(world_from_view * glm::vec4(r.A, 1.0f));
         r.B = glm::vec3(world_from_view * glm::vec4(r.B, 0.0f));
@@ -145,7 +162,8 @@ void updateLine(RTContext &rtx, int y)
             rtx.image[y * nx + x] = glm::clamp(old / glm::max(1.0f, old.a), 0.0f, 1.0f);
         }
         glm::vec3 c = color(rtx, r, rtx.max_bounces);
-        rtx.image[y * nx + x] += glm::vec4(c, 1.0f);
+        // c = glm::vec3(linear_to_gamma(c.r),linear_to_gamma(c.g),linear_to_gamma(c.b)); // Gamma correction (gamma 2, from the book) edit: already done in fragment shader
+        rtx.image[y * nx + x] += glm::vec4(c, 1.0f); 
     }
 }
 

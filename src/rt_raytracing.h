@@ -24,6 +24,9 @@ struct RTContext {
     bool show_normals = true;
     // Add more settings and parameters here
     // ...
+
+    bool anti_aliasing = true;
+    bool true_lambertian = false;
 };
 
 void setupScene(RTContext &rtx, const char *mesh_filename);

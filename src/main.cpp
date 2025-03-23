@@ -33,6 +33,8 @@ struct Context {
     rt::RTContext rtx;
     GLuint texture = 0;
     float elapsed_time;
+
+    bool gamma_correction = false;
 };
 
 // Returns the value of an environment variable
@@ -125,6 +127,8 @@ void drawImage(Context &ctx)
     // Activate program and pass uniform for texture unit
     glUseProgram(ctx.program);
     glUniform1i(glGetUniformLocation(ctx.program, "u_texture"), 0);
+    glUniform1i(glGetUniformLocation(ctx.program, "u_gammaCorrection"), 0);
+
 
     // Draw fullscreen quad (without any vertex buffers)
     glBindVertexArray(ctx.emptyVAO);
@@ -144,7 +148,9 @@ void showGui(Context &ctx)
     if (ImGui::Checkbox("Show normals", &ctx.rtx.show_normals)) { rt::resetAccumulation(ctx.rtx); }
     // Add more settings and parameters here
     // ...
-
+    ImGui::Checkbox("Anti-aliasing", &ctx.rtx.anti_aliasing);
+    ImGui::Checkbox("True lambertian reflection", &ctx.rtx.true_lambertian);
+    ImGui::Checkbox("Gamma Correction", &ctx.gamma_correction);
     ImGui::Text("Progress");
     ImGui::ProgressBar(float(ctx.rtx.current_frame) / ctx.rtx.max_frames);
     if (ImGui::Button("Freeze/Resume")) { ctx.rtx.freeze = !ctx.rtx.freeze; }
