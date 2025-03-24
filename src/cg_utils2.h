@@ -18,7 +18,7 @@
 #include <glm/gtc/random.hpp>
 
 namespace cg {
-    namespace random {
+    namespace helpers {
 
         static glm::vec3 random_unit_vector() {
             return glm::sphericalRand(1.0f);
@@ -33,6 +33,12 @@ namespace cg {
             return normal + random_unit_vector();
         }
 
+        static bool near_zero(const glm::vec3& v, float epsilon = 1e-8f) {
+            return glm::all(glm::lessThan(glm::abs(v), glm::vec3(epsilon)));
+        }
+        static glm::vec3 reflect(const glm::vec3 &v, const glm::vec3 &n) {
+            return v - 2*glm::dot(v,n)*n;
+        }
     };
 
 // Struct for representing a virtual 3D trackball that can be used for

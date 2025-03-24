@@ -4,9 +4,11 @@
 #include "rt_sphere.h"
 #include "rt_triangle.h"
 #include "rt_box.h"
+#include "rt_material.h"
 
 #include "cg_utils2.h"  // Used for OBJ-mesh loading
 #include <stdlib.h>     // Needed for drand48()
+#include <memory>
 
 namespace rt {
 
@@ -70,15 +72,19 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
     HitRecord rec;
     if (hit_world(r, 0.001f, 9999.0f, rec)) {  // 0.001f is our shadow acne hack
         rec.normal = glm::normalize(rec.normal);  // Always normalise before use!
-        if (rtx.show_normals) { return rec.normal * 0.5f + 0.5f; }
-
+        
+        if (rtx.show_normals) { 
+            return rec.normal * 0.5f + 0.5f; 
+        }
+        
         // Implement lighting for materials here
-        const glm::vec3 direction = rtx.true_lambertian ? cg::random::lambertian_random_unit_vector(rec.normal) : cg::random::random_unit_vector_on_hemisphere(rec.normal);
-constexpr float material_diffuse_color_consumption = 0.5f;
+        Ray scattered;
+        glm::vec3 attenuation;
+        if (rec.mat->scatter(r, rec, attenuation, scattered, rtx)) {
+            return attenuation * color(rtx, scattered, max_bounces - 1);
+        }
 
-        return material_diffuse_color_consumption * color(rtx, Ray(rec.p, direction), max_bounces - 1);
-
-        //return glm::vec3(0.0f);
+        return glm::vec3(0.0f);
     }
 
     // If no hit, return sky color
@@ -90,12 +96,19 @@ constexpr float material_diffuse_color_consumption = 0.5f;
 // MODIFY THIS FUNCTION!
 void setupScene(RTContext &rtx, const char *filename)
 {
-    g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f);
+    auto material_ground = std::make_shared<Lambertian>(glm::vec3(0.8, 0.8, 0.0));
+    auto material_center = std::make_shared<Lambertian>(glm::vec3(0.1, 0.2, 0.5));
+    auto material_left   = std::make_shared<Metal>(glm::vec3(0.8, 0.8, 0.8));
+    auto material_right  = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2));
+
+
+    g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f, material_ground);
     g_scene.spheres = {
-        Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f),
-        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f),
-        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f),
+        Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f, material_center),
+        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f, material_right),
+        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f, material_left),
     };
+
     // g_scene.boxes = {
     //    Box(glm::vec3(0.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
     //    Box(glm::vec3(1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
