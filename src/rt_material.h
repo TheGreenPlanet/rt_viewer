@@ -13,10 +13,10 @@ namespace rt {
      public:
         Lambertian(const glm::vec3 &a) : albedo(a) {}
 
-        bool scatter(const Ray &r_in, const HitRecord &rec, glm::vec3 &attenuation, Ray &scattered, const RTContext& rtx) const override
+        bool scatter(const Ray &r_in, const HitRecord &rec, glm::vec3 &attenuation, Ray &scattered, bool true_lambertian) const override
         {
 
-            glm::vec3 direction = rtx.true_lambertian ? rec.normal + cg::helpers::random_unit_vector() : cg::helpers::random_unit_vector_on_hemisphere(rec.normal);
+            glm::vec3 direction = true_lambertian ? rec.normal + cg::helpers::random_unit_vector() : cg::helpers::random_unit_vector_on_hemisphere(rec.normal);
             if (cg::helpers::near_zero(direction)) {
                 direction = rec.normal;
             }
@@ -33,7 +33,7 @@ namespace rt {
         public:
           Metal(const glm::vec3& albedo) : albedo(albedo) {}
       
-          bool scatter(const Ray &r_in, const HitRecord &rec, glm::vec3 &attenuation, Ray &scattered, const RTContext& rtx) const override {
+          bool scatter(const Ray &r_in, const HitRecord &rec, glm::vec3 &attenuation, Ray &scattered, bool true_lambertian) const override {
               glm::vec3 reflected = cg::helpers::reflect(r_in.direction(), rec.normal);
               scattered = Ray(rec.p, reflected);
               attenuation = albedo;

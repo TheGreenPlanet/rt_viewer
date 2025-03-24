@@ -8,9 +8,20 @@
 #include <vector>
 
 #include "rt_box.h"
+#include "rt_sphere.h"
+#include "rt_triangle.h"
 
 
 namespace rt {
+
+    struct Scene {
+        Sphere ground;
+        std::vector<Sphere> spheres;
+        std::vector<Box> boxes;
+        std::vector<Triangle> mesh;
+        Box mesh_bbox;
+    };
+    extern Scene g_scene;
 
 struct RTContext {
     int width = 500;

@@ -21,7 +21,7 @@ namespace rt {
         public:
         
         virtual ~Material() {}
-        virtual bool scatter(const struct Ray &r_in, const struct HitRecord &rec, glm::vec3 &attenuation, struct Ray &scattered, const struct RTContext& rtx) const = 0;
+        virtual bool scatter(const struct Ray &r_in, const struct HitRecord &rec, glm::vec3 &attenuation, struct Ray &scattered, bool true_lambertian) const = 0;
     };
 
     class Hitable {

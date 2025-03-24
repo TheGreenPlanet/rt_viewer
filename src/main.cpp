@@ -148,6 +148,64 @@ void showGui(Context &ctx)
     if (ImGui::Checkbox("Show normals", &ctx.rtx.show_normals)) { rt::resetAccumulation(ctx.rtx); }
     // Add more settings and parameters here
     // ...
+    ImGui::BeginGroup();
+
+    static int selected_sphere_index = 0;
+    
+    if (!rt::g_scene.spheres.empty()) {
+        std::vector<std::string> sphere_labels;
+        for (size_t i = 0; i < rt::g_scene.spheres.size(); ++i) {
+            sphere_labels.push_back("Sphere " + std::to_string(i));
+        }
+    
+        std::vector<const char*> cstr_labels;
+        for (auto& label : sphere_labels) {
+            cstr_labels.push_back(label.c_str());
+        }
+    
+        ImGui::Combo("Select Sphere", &selected_sphere_index, cstr_labels.data(), static_cast<int>(cstr_labels.size()));
+    
+        // Clamp to valid range
+        if (selected_sphere_index >= static_cast<int>(rt::g_scene.spheres.size())) {
+            selected_sphere_index = static_cast<int>(rt::g_scene.spheres.size()) - 1;
+        }
+    
+        auto& sphere = rt::g_scene.spheres[selected_sphere_index];
+    
+        ImGui::Separator();
+        ImGui::Text("Edit Sphere %d", selected_sphere_index);
+    
+        ImGui::SliderFloat3("Position", &sphere.center.x, -10.0f, 10.0f);
+        ImGui::SliderFloat("Radius", &sphere.radius, 0.0f, 5.0f);
+
+constexpr size_t MAX_OBJECTS = 10;
+        static int selected_material_index[MAX_OBJECTS] = {0};
+        const char* material_names[] = { "Lambertian", "Metalic" };
+
+
+        static float selected_sphere_color[MAX_OBJECTS][4] = {1.0f};
+
+        ImGui::ColorEdit4("Albedo", selected_sphere_color[selected_sphere_index]);
+
+        glm::vec3 albedo_color = glm::vec3(selected_sphere_color[selected_sphere_index][0], selected_sphere_color[selected_sphere_index][1], selected_sphere_color[selected_sphere_index][2]);
+
+        if (ImGui::Combo("Material", &selected_material_index[selected_sphere_index], material_names, 2)) {
+            rt::resetAccumulation(ctx.rtx);
+            
+            switch (selected_material_index[selected_sphere_index]) {
+                case 0: // Lambertian
+                    sphere.mat = std::make_shared<rt::Lambertian>(albedo_color);
+                    break;
+                case 1: // Metal
+                    sphere.mat = std::make_shared<rt::Metal>(albedo_color);
+                    break;
+            }
+        }
+
+    }
+    
+    ImGui::EndGroup();
+    
 
 
     ImGui::Checkbox("Anti-aliasing", &ctx.rtx.anti_aliasing);

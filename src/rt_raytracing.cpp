@@ -14,13 +14,7 @@
 namespace rt {
 
 // Store scene (world) in a global variable for convenience
-struct Scene {
-    Sphere ground;
-    std::vector<Sphere> spheres;
-    std::vector<Box> boxes;
-    std::vector<Triangle> mesh;
-    Box mesh_bbox;
-} g_scene;
+Scene g_scene;
 
 
 
@@ -86,7 +80,7 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
         // Implement lighting for materials here
         Ray scattered;
         glm::vec3 attenuation;
-        if (rec.mat->scatter(r, rec, attenuation, scattered, rtx)) {
+        if (rec.mat->scatter(r, rec, attenuation, scattered, rtx.true_lambertian)) {
             return attenuation * color(rtx, scattered, max_bounces - 1);
         }
 
