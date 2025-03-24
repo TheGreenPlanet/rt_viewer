@@ -1,8 +1,12 @@
 #pragma once
 
+#include <memory>
+
 #include "rt_hitable.h"
 #include "rt_material.h"
-#include <memory>
+
+#include "rt_ray.h"
+
 
 namespace rt {
 
@@ -19,7 +23,7 @@ class Triangle : public Hitable {
 };
 
 // Ray-triangle test adapted from "Real-Time Collision Detection" book (pages 191--192)
-bool Triangle::hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const
+inline bool Triangle::hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const
 {
     glm::vec3 n = glm::cross(v1 - v0, v2 - v0);
     float d = glm::dot(-r.direction(), n);
@@ -44,4 +48,4 @@ bool Triangle::hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const
     return false;
 }
 
-}  // namespace rt
+};  // namespace rt

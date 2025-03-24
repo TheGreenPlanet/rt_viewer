@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rt_hitable.h"
+#include "rt_ray.h"
 
 namespace rt {
 
@@ -16,7 +17,7 @@ class Sphere : public Hitable {
 };
 
 // Ray-sphere test from "Ray Tracing in a Weekend" book (page 16)
-bool Sphere::hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const
+inline bool Sphere::hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const
 {
     glm::vec3 oc = r.origin() - center;
     float a = glm::dot(r.direction(), r.direction());
@@ -38,4 +39,4 @@ bool Sphere::hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const
     return false;
 }
 
-}  // namespace rt
+};  // namespace rt

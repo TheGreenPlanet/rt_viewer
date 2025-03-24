@@ -1,6 +1,8 @@
 #pragma once
 
 #include "rt_hitable.h"
+#include "rt_ray.h"
+
 
 namespace rt {
 
@@ -16,7 +18,7 @@ class Box : public Hitable {
 
 // Ray-box test adapted from branchless code at
 // https://tavianator.com/fast-branchless-raybounding-box-intersections/
-bool Box::hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const
+inline bool Box::hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const
 {
     glm::vec3 oc = r.origin() - center;
     glm::vec3 t0 = (-radius - oc) / r.direction();
@@ -34,4 +36,4 @@ bool Box::hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const
     return false;
 }
 
-}  // namespace rt
+};  // namespace rt

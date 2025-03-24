@@ -1,11 +1,13 @@
 #pragma once
 
+
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <vector>
 
+#include "rt_box.h"
 
 
 namespace rt {
@@ -36,4 +38,4 @@ void updateImage(RTContext &rtx);
 void resetImage(RTContext &rtx);
 void resetAccumulation(RTContext &rtx);
 
-}  // namespace rt
+};  // namespace rt

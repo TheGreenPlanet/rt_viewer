@@ -30,4 +30,4 @@ class Ray {
     glm::vec3 B;
 };
 
-}  // namespace rt
+};  // namespace rt

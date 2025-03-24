@@ -228,4 +228,4 @@ void resetAccumulation(RTContext &rtx)
     rtx.current_frame = -1;
 }
 
-}  // namespace rt
+};  // namespace rt
