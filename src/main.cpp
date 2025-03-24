@@ -148,6 +148,8 @@ void showGui(Context &ctx)
     if (ImGui::Checkbox("Show normals", &ctx.rtx.show_normals)) { rt::resetAccumulation(ctx.rtx); }
     // Add more settings and parameters here
     // ...
+
+
     ImGui::Checkbox("Anti-aliasing", &ctx.rtx.anti_aliasing);
     ImGui::Checkbox("True lambertian reflection", &ctx.rtx.true_lambertian);
     ImGui::Checkbox("Gamma Correction", &ctx.gamma_correction);

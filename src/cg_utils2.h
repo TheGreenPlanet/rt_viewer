@@ -66,6 +66,8 @@ struct OBJMesh {
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
     std::vector<std::uint32_t> indices;
+    glm::vec3 min;
+    glm::vec3 max;
 };
 
 // Struct for Wavefront (OBJ) triangle meshes that are indexed and has
@@ -177,6 +179,7 @@ static bool objMeshLoad(OBJMesh &mesh, const std::string &filename)
     // Extract vertices and indices
     std::string line;
     glm::vec3 vertex;
+    
     std::uint32_t vertexIndex0, vertexIndex1, vertexIndex2;
     while (!f.eof()) {
         std::getline(f, line);
@@ -185,6 +188,17 @@ static bool objMeshLoad(OBJMesh &mesh, const std::string &filename)
             vertexLine >> vertex.x;
             vertexLine >> vertex.y;
             vertexLine >> vertex.z;
+
+            // Update bounding box
+            mesh.min = glm::vec3(
+                std::min(mesh.min.x, vertex.x), 
+                std::min(mesh.min.y, vertex.y), 
+                std::min(mesh.min.z, vertex.z));
+            mesh.max = glm::vec3(
+                std::max(mesh.max.x, vertex.x), 
+                std::max(mesh.max.y, vertex.y), 
+                std::max(mesh.max.z, vertex.z));
+
             mesh.vertices.push_back(vertex);
         }
         else if (line.substr(0, 2) == FACE_LINE) {

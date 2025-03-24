@@ -1,4 +1,5 @@
 #include "rt_raytracing.h"
+
 #include "rt_ray.h"
 #include "rt_hitable.h"
 #include "rt_sphere.h"
@@ -20,6 +21,8 @@ struct Scene {
     std::vector<Triangle> mesh;
     Box mesh_bbox;
 } g_scene;
+
+
 
 bool hit_world(const Ray &r, float t_min, float t_max, HitRecord &rec)
 {
@@ -46,11 +49,14 @@ bool hit_world(const Ray &r, float t_min, float t_max, HitRecord &rec)
             rec = temp_rec;
         }
     }
-    for (int i = 0; i < g_scene.mesh.size(); ++i) {
-        if (g_scene.mesh[i].hit(r, t_min, closest_so_far, temp_rec)) {
-            hit_anything = true;
-            closest_so_far = temp_rec.t;
-            rec = temp_rec;
+
+    if (g_scene.mesh_bbox.hit(r, t_min, closest_so_far, temp_rec)) {
+        for (int i = 0; i < g_scene.mesh.size(); ++i) {
+            if (g_scene.mesh[i].hit(r, t_min, closest_so_far, temp_rec)) {
+                hit_anything = true;
+                closest_so_far = temp_rec.t;
+                rec = temp_rec;
+            }
         }
     }
     return hit_anything;
@@ -100,18 +106,18 @@ void setupScene(RTContext &rtx, const char *filename)
     auto material_center = std::make_shared<Lambertian>(glm::vec3(0.1, 0.2, 0.5));
     auto material_left   = std::make_shared<Metal>(glm::vec3(0.8, 0.8, 0.8));
     auto material_right  = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2));
-    auto material_random  = std::make_shared<Metal>(glm::vec3(0.1, 0.1, 0.9));
+    auto material_random  = std::make_shared<Metal>(glm::vec3(1.0, 1.0, 1.0));
 
 
     g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f, material_ground);
     g_scene.spheres = {
         Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f, material_center),
-        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f, material_right),
-        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f, material_left),
+        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.1f, material_right),
+        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.2f, material_left),
 
-        Sphere(glm::vec3(2.0f, 0.0f, 2.0f), 0.25f, material_right),
-        Sphere(glm::vec3(-1.0f, 3.0f, 0.0f), 1.0f, material_left),
-        Sphere(glm::vec3(-1.0f, 0.0f, 1.0f), 0.5f, material_random),
+        Sphere(glm::vec3(2.0f, 0.0f, 0.0f), 0.25f, material_right),
+        Sphere(glm::vec3(-1.0f, 2.0f, 0.0f), 0.1f, material_left),
+        Sphere(glm::vec3(-1.0f, 0.0f, 1.0f), 0.3f, material_random),
     };
 
     // g_scene.boxes = {
@@ -120,18 +126,25 @@ void setupScene(RTContext &rtx, const char *filename)
     //    Box(glm::vec3(-1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
     // };
 
-    // cg::OBJMesh mesh;
-    // cg::objMeshLoad(mesh, filename);
-    // g_scene.mesh.clear();
-    // for (int i = 0; i < mesh.indices.size(); i += 3) {
-    //    int i0 = mesh.indices[i + 0];
-    //    int i1 = mesh.indices[i + 1];
-    //    int i2 = mesh.indices[i + 2];
-    //    glm::vec3 v0 = mesh.vertices[i0] + glm::vec3(0.0f, 0.135f, 0.0f);
-    //    glm::vec3 v1 = mesh.vertices[i1] + glm::vec3(0.0f, 0.135f, 0.0f);
-    //    glm::vec3 v2 = mesh.vertices[i2] + glm::vec3(0.0f, 0.135f, 0.0f);
-    //    g_scene.mesh.push_back(Triangle(v0, v1, v2));
-    // }
+        
+    cg::OBJMesh mesh;
+    cg::objMeshLoad(mesh, filename);
+    g_scene.mesh.clear();
+    for (int i = 0; i < mesh.indices.size(); i += 3) {
+        int i0 = mesh.indices[i + 0];
+        int i1 = mesh.indices[i + 1];
+        int i2 = mesh.indices[i + 2];
+        glm::vec3 v0 = mesh.vertices[i0] + glm::vec3(0.0f, 0.135f, 0.0f);
+        glm::vec3 v1 = mesh.vertices[i1] + glm::vec3(0.0f, 0.135f, 0.0f);
+        glm::vec3 v2 = mesh.vertices[i2] + glm::vec3(0.0f, 0.135f, 0.0f);
+        
+        g_scene.mesh.push_back(Triangle(v0, v1, v2, material_random));
+    }
+    glm::vec3 bbox_c = (mesh.max + mesh.min) / 2.0f;
+    float side_length = glm::compMax(mesh.max - mesh.min);  
+    // float bbox_r = (side_length * std::sqrt(3)) / 2.0;
+    glm::vec3 bbox_r = (mesh.max - mesh.min) / 2.0f;
+    g_scene.mesh_bbox = Box(bbox_c + glm::vec3(0.0f, 0.135f, 0.0f), bbox_r);
 }
 
 // Gamma 2 correction from the book (ch. 9.5)
