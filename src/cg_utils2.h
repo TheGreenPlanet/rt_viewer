@@ -19,9 +19,18 @@
 
 namespace cg {
     namespace helpers {
-
+        static double length_squared(glm::vec3 e) {
+            return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
+        }
+    
         static glm::vec3 random_unit_vector() {
-            return glm::sphericalRand(1.0f);
+            // return glm::sphericalRand(1.0f);
+            while (true) {
+                glm::vec3 p = glm::sphericalRand(1.0f);
+                auto lensq = length_squared(p);
+                if (1e-160 < lensq && lensq <= 1)
+                    return p; //p / float(sqrt(lensq));
+            }
         }
 
         static glm::vec3 random_unit_vector_on_hemisphere(const glm::vec3 &normal) {
