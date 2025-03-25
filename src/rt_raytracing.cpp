@@ -101,11 +101,12 @@ void setupScene(RTContext &rtx, const char *filename)
     auto material_left   = std::make_shared<Metal>(glm::vec3(0.8, 0.8, 0.8));
     auto material_right  = std::make_shared<Metal>(glm::vec3(0.8, 0.6, 0.2));
     auto material_random  = std::make_shared<Metal>(glm::vec3(1.0, 1.0, 1.0));
+    rtx.material_mesh = std::make_shared<Metal>(glm::vec3(1.0, 1.0, 1.0));
 
 
     g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f, material_ground);
     g_scene.spheres = {
-        Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f, material_center),
+        //Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f, material_center),
         Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.1f, material_right),
         Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.2f, material_left),
 
@@ -132,10 +133,10 @@ void setupScene(RTContext &rtx, const char *filename)
         glm::vec3 v1 = mesh.vertices[i1] + glm::vec3(0.0f, 0.135f, 0.0f);
         glm::vec3 v2 = mesh.vertices[i2] + glm::vec3(0.0f, 0.135f, 0.0f);
         
-        g_scene.mesh.push_back(Triangle(v0, v1, v2, material_random));
+        g_scene.mesh.push_back(Triangle(v0, v1, v2, rtx.material_mesh));
     }
     glm::vec3 bbox_c = (mesh.max + mesh.min) / 2.0f;
-    float side_length = glm::compMax(mesh.max - mesh.min);  
+    // float side_length = glm::compMax(mesh.max - mesh.min);  
     // float bbox_r = (side_length * std::sqrt(3)) / 2.0;
     glm::vec3 bbox_r = (mesh.max - mesh.min) / 2.0f;
     g_scene.mesh_bbox = Box(bbox_c + glm::vec3(0.0f, 0.135f, 0.0f), bbox_r);

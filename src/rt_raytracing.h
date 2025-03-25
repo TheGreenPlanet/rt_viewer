@@ -39,7 +39,9 @@ struct RTContext {
     bool show_normals = true;
     // Add more settings and parameters here
     // ...
-
+    std::shared_ptr<rt::Material> material_mesh;
+    glm::vec3 mesh_albedo = glm::vec3(1.0f);
+    int mesh_material = 0;
     bool anti_aliasing = true;
     bool true_lambertian = false;
 };

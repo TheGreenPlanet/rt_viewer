@@ -148,6 +148,48 @@ void showGui(Context &ctx)
     if (ImGui::Checkbox("Show normals", &ctx.rtx.show_normals)) { rt::resetAccumulation(ctx.rtx); }
     // Add more settings and parameters here
     // ...
+
+
+    ImGui::Text("Global Mesh Material");
+    const char* material_names[] = { "Lambertian", "Metalic" };
+
+    static int selected_material_index = 0;
+    if (ImGui::ColorEdit3("Mesh Albedo", &ctx.rtx.mesh_albedo[0])) {
+        // rt::resetAccumulation(ctx.rtx);
+        // switch (selected_material_index) {
+        //     case 0: // Lambertian
+        //         for (auto& triangle : rt::g_scene.mesh) {
+        //             triangle.mat = std::make_shared<rt::Lambertian>(ctx.rtx.mesh_albedo);
+        //         }
+
+        //         break;
+        //     case 1: // Metal
+        //         for (auto& triangle : rt::g_scene.mesh) {
+        //             triangle.mat = std::make_shared<rt::Metal>(ctx.rtx.mesh_albedo);
+        //         }
+        //         break;
+        // }
+    }
+
+    if (ImGui::Combo("Mesh Material", &selected_material_index, material_names, 2)) {
+        rt::resetAccumulation(ctx.rtx);
+        switch (selected_material_index) {
+            case 0: // Lambertian
+                for (auto& triangle : rt::g_scene.mesh) {
+                    triangle.mat = std::make_shared<rt::Lambertian>(ctx.rtx.mesh_albedo);
+                }
+                break;
+            case 1: // Metal
+                for (auto& triangle : rt::g_scene.mesh) {
+                    triangle.mat = std::make_shared<rt::Metal>(ctx.rtx.mesh_albedo);
+                }
+                break;
+        }
+    }
+    
+    
+    ImGui::Separator();
+
     ImGui::BeginGroup();
 
     static int selected_sphere_index = 0;
@@ -172,7 +214,6 @@ void showGui(Context &ctx)
     
         auto& sphere = rt::g_scene.spheres[selected_sphere_index];
     
-        ImGui::Separator();
         ImGui::Text("Edit Sphere %d", selected_sphere_index);
     
         ImGui::SliderFloat3("Position", &sphere.center.x, -10.0f, 10.0f);
@@ -180,7 +221,6 @@ void showGui(Context &ctx)
 
 constexpr size_t MAX_OBJECTS = 10;
         static int selected_material_index[MAX_OBJECTS] = {0};
-        const char* material_names[] = { "Lambertian", "Metalic" };
 
 
         static float selected_sphere_color[MAX_OBJECTS][4] = {1.0f};
@@ -188,7 +228,7 @@ constexpr size_t MAX_OBJECTS = 10;
         ImGui::ColorEdit4("Albedo", selected_sphere_color[selected_sphere_index]);
 
         glm::vec3 albedo_color = glm::vec3(selected_sphere_color[selected_sphere_index][0], selected_sphere_color[selected_sphere_index][1], selected_sphere_color[selected_sphere_index][2]);
-
+        
         if (ImGui::Combo("Material", &selected_material_index[selected_sphere_index], material_names, 2)) {
             rt::resetAccumulation(ctx.rtx);
             
